@@ -18,6 +18,7 @@ from sklearn.externals.joblib import Parallel, delayed
 from enspara import exception
 
 from enspara.cluster.util import assign_to_nearest_center, partition_list
+from enspara.apps.util import readable_dir
 from enspara.util.load import (concatenate_trjs, sound_trajectory,
                                load_as_concatenated)
 from enspara.util import array as ra
@@ -48,10 +49,6 @@ def process_command_line(argv):
         help="The atoms from the trajectories (using MDTraj atom-selection"
              "syntax) to cluster based upon.")
     parser.add_argument(
-        '--output-path', default=None,
-        help="Output path for results (distances, assignments). "
-             "Default is in the same directory as the input centers.")
-    parser.add_argument(
         '-j', '--n_procs', default=psutil.cpu_count(), type=int,
         help="The number of cores to use while reassigning.")
     parser.add_argument(
@@ -61,11 +58,11 @@ def process_command_line(argv):
 
     # OUTPUT ARGS
     parser.add_argument(
-        '--distances', required=True,
+        '--distances', required=True, action=readable_dir,
         help="Path to h5 file where distance to nearest cluster center "
              "will be output.")
     parser.add_argument(
-        '--assignments', required=True,
+        '--assignments', required=True, action=readable_dir,
         help="Path to h5 file where assignments to nearest center will "
              "be ouput")
 
@@ -79,9 +76,6 @@ def process_command_line(argv):
     if len(args.topologies) != len(args.trajectories):
         raise exception.ImproperlyConfigured(
             "The number of --topology and --trajectory flags must agree.")
-
-    if args.output_path is None:
-        args.output_path = os.path.dirname(args.centers)
 
     for trjset in args.trajectories:
         for trj in trjset:
