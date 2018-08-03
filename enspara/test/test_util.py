@@ -183,7 +183,7 @@ class Test_RaggedArray(unittest.TestCase):
         assert_array_equal(a[:,1], [[1],[1],[1]])
         assert_array_equal(a[:,np.arange(3)[1]], [[1],[1],[1]])
 
-        a[:,np.arange(3)[1]] = [[90],[90],[70]] 
+        a[:,np.arange(3)[1]] = [[90],[90],[70]]
         assert_array_equal(a[:,1], [[90], [90], [70]])
         assert_array_equal(a[:,np.arange(3)[1]], [[90], [90], [70]])
 
@@ -397,8 +397,6 @@ class TestParallelLoad(unittest.TestCase):
         self.trj_fname = get_fn('frame0.xtc')
         self.top_fname = get_fn('native.pdb')
         self.top = md.load(self.top_fname).top
-
-        logging.getLogger('enspara.util.load').setLevel(logging.DEBUG)
 
     def test_load_as_concatenated_stride(self):
 
@@ -634,8 +632,6 @@ class TestConcatenateTrajs(unittest.TestCase):
         self.trj_fname = get_fn('frame0.xtc')
         self.top_fname = get_fn('native.pdb')
         self.top = md.load(self.top_fname).top
-
-        logging.getLogger('enspara.util.load').setLevel(logging.DEBUG)
 
     def test_concat_simple(self):
 

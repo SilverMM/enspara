@@ -1,8 +1,4 @@
-from __future__ import print_function, division, absolute_import
-
 import unittest
-import warnings
-import time
 import os
 
 import numpy as np
@@ -14,9 +10,11 @@ from nose.tools import (assert_raises, assert_less, assert_true, assert_is,
 from nose.plugins.attrib import attr
 
 from sklearn.datasets import make_blobs
+from sklearn.metrics.pairwise import euclidean_distances
 
 from numpy.testing import assert_array_equal, assert_allclose
 
+from ..geometry.libdist import euclidean
 from ..cluster.hybrid import KHybrid, hybrid
 from ..cluster import kcenters, kmedoids, util
 from ..exception import DataInvalid, ImproperlyConfigured
@@ -605,6 +603,102 @@ class TestNumpyClustering(unittest.TestCase):
                 "Expected generator {g} to be less than 2 away frome one"
                 "of {c} (was {d}).".
                 format(c=c, g=self.generators, d=mindist))
+
+
+def test_kmedoids_pam_update():
+
+    X, y = make_blobs(n_samples=1000, centers=100, center_box=(-500.0, 500.0))
+
+    result = kcenters(X, euclidean, n_clusters=100)
+
+    assigs = result.assignments
+
+    medoid_inds, dists, assigs = kmedoids._kmedoids_pam_update(
+        X,
+        metric=euclidean,
+        medoid_inds=medoid_inds,
+        assignments=assigs,
+        distances=dists,
+        proposals=[4, 5],
+        cost=kmedoids._msq)
+
+    print(medoid_inds)
+    print(dists)
+    print(assigs)
+
+    assert False
+
+
+def test_kmedoids_pam_update_single_cluster():
+
+    X, y = make_blobs(n_features=10, n_samples=500, centers=1)
+
+    mean = X.mean(axis=0)[None, ...]
+
+    # Step 1: if we assign the farthest point from the cluster, the PAM
+    # medoid should always accept the other proposals
+    outlier = np.argmax(euclidean_distances(X, mean))
+    assigs, dists = util.assign_to_nearest_center(
+            X, X[outlier][None, ...], distance_method=euclidean)
+
+    for i, prop in enumerate(X):
+        if i == outlier:
+            continue
+
+        medoid_inds, new_dists, new_assigs = kmedoids._kmedoids_pam_update(
+            X,
+            metric=euclidean,
+            medoid_inds=[outlier],
+            assignments=assigs,
+            distances=dists,
+            proposals=[i])
+
+        assert medoid_inds[0] == i
+        assert not np.all(new_dists == dists)
+        assert not np.all(new_dists == dists)
+
+    # Step 1: if we assign the closest point to the mean, the PAM
+    # medoid should always never the other proposals
+    meanoid = np.argmin(euclidean_distances(X, mean))
+
+    assigs, dists = util.assign_to_nearest_center(
+            X, X[meanoid][None, ...], distance_method=euclidean)
+    for i, coords in enumerate(X):
+        if i == meanoid:
+            continue
+
+        medoid_inds, new_dists, new_assigs = kmedoids._kmedoids_pam_update(
+            X,
+            metric=euclidean,
+            medoid_inds=[meanoid],
+            assignments=assigs,
+            distances=dists,
+            proposals=[i])
+
+        assert_equal(medoid_inds[0], meanoid)
+        assert_array_equal(new_dists, dists)
+        assert_array_equal(new_dists, dists)
+
+    # assert False
+
+def test_kmedoids_propose_center_amongst_nompi():
+
+    X = np.arange(1000)
+    state_inds = np.arange(500)
+
+    inds = []
+    prop_ctrs = []
+    for i in range(10000):
+        prop_ctr, proposed_ind = kmedoids._propose_new_center_amongst(
+            X=X, state_inds=state_inds,
+            mpi_mode=False, random_state=None)
+        inds.append(proposed_ind)
+        prop_ctrs.append(proposed_ind)
+
+    print(np.bincount(inds))
+
+    assert False
+
 
 @attr('mpi')
 def test_kmedoids_propose_center_amongst():
