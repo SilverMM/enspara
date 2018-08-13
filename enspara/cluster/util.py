@@ -175,9 +175,12 @@ def assign_to_nearest_center(trajectory, cluster_centers, distance_method):
     distances = np.empty(len(trajectory), dtype=float)
     distances.fill(np.inf)
 
-    if not np.all(np.unique(assignments) == np.arange(assignments.max())):
-        raise DataInvalid(
-            "Center ids must be contiguous in assign_to_nearest_center")
+    if len(assignments) > 0:
+        # in MPI mode, sometimes the trajectory is empty (in the case,
+        # for example, a node doesn't have any points that changed)
+        if not np.all(np.unique(assignments) == np.arange(assignments.max())):
+            raise DataInvalid(
+                "Center ids must be contiguous in assign_to_nearest_center")
 
     # if there are more cluster_centers than trajectory, significant
     # performance benefit can be realized by computing each frame's
