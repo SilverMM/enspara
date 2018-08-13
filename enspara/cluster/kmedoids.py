@@ -149,8 +149,10 @@ def _kmedoids_pam_update(
         Function that takes a parameter like `X` and a single frame
         of `X` (_i.e._ X.shape[1:]).
     medoid_inds : list, [(rank, index), ...] if MPI or [index, ...]
-        A list of the locations of center indices in terms of the rank
-        of the node that owns them and the index within that world.
+        Without MPI, the list of frame indices that contain the medoids.
+        In MPI mode, a list of the locations of center indices in terms
+        of the rank of the node that owns them and the index within that
+        "world."
     assignments : ndarray, shape=(X.shape[0],)
         Array indicating the assignment of each frame in `X` to a
         cluster center.
