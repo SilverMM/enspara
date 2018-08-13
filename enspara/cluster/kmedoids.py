@@ -187,6 +187,8 @@ def _kmedoids_pam_update(
     assert len(distances) == len(X)
     random_state = check_random_state(random_state)
 
+    medoid_inds_out = np.array(medoid_inds, copy=True)
+
     if proposals is not None:
         logger.debug("Got proposals, won't randomly propose.")
         assert len(proposals) == len(medoid_inds)
@@ -284,7 +286,7 @@ def _kmedoids_pam_update(
                 cid, old_cost, new_cost)
             distances, assignments = new_dist, new_assig
             medoid_coords = new_medoids
-            medoid_inds[cid] = proposed_center_ind
+            medoid_inds_out[cid] = proposed_center_ind
             acceptances += 1
         else:
             logger.debug(
@@ -294,4 +296,4 @@ def _kmedoids_pam_update(
     logger.info("Kmedoid sweep reduced cost to %.7f (%.2f%% acceptance)",
                 min(old_cost, new_cost), acceptances/len(medoid_inds)*100)
 
-    return medoid_inds, distances, assignments
+    return medoid_inds_out, distances, assignments

@@ -6,7 +6,7 @@ import mdtraj as md
 from mdtraj.testing import get_fn
 
 from nose.tools import (assert_raises, assert_less, assert_true, assert_is,
-                        assert_equal)
+                        assert_equal, assert_false)
 from nose.plugins.attrib import attr
 
 from sklearn.datasets import make_blobs
@@ -414,13 +414,14 @@ def test_kmedoids_pam_update_numpy():
     X, y = make_blobs(centers=means, random_state=0)
 
     r = kcenters.kcenters(X, DIST_FUNC, n_clusters=3)
-    ind = r.center_indices
+    ind_in = r.center_indices
     assig = r.assignments
     dists = r.distances
 
     ind, dists, assig = kmedoids._kmedoids_pam_update(
-        X, DIST_FUNC, ind, assig, dists, random_state=0)
+        X, DIST_FUNC, ind_in, assig, dists, random_state=0)
 
+    assert_false(np.all(ind == ind_in))
     assert_array_equal(ind, [0, 7, 17])
 
     expect_assig, expect_dists = util.assign_to_nearest_center(
@@ -653,7 +654,7 @@ def test_kmedoids_pam_update_single_cluster():
             distances=dists,
             proposals=[i])
 
-        assert medoid_inds[0] == i
+        assert_equal(medoid_inds[0], i)
         assert not np.all(new_dists == dists)
         assert not np.all(new_dists == dists)
 
